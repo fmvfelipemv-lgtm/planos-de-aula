@@ -143,14 +143,21 @@
 
                 for (let i = 0; i < maxRetries; i++) {
                     try {
+                        // Adiciona timeout para evitar requisições travadas
+                        const controller = new AbortController();
+                        const timeoutId = setTimeout(() => controller.abort(), 30000);
+
                         // Faz a requisição para o proxy, que redirecionará para o Gemini
                         const response = await fetch(proxyUrl, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
                             },
-                            body: JSON.stringify({ prompt: prompt }) // Envia o prompt no formato que o proxy espera
+                            body: JSON.stringify({ prompt: prompt }),
+                            signal: controller.signal
                         });
+
+                        clearTimeout(timeoutId);
 
                         if (response.status === 429) {
                             const delay = baseDelay * Math.pow(2, i);
@@ -163,22 +170,40 @@
                             throw new Error(`Erro HTTP! status: ${response.status}`);
                         }
 
-                        const result = await response.json();
-                        // A resposta do proxy já é o texto gerado pelo Gemini
-                        const text = result?.text || result?.candidates?.[0]?.content?.parts?.[0]?.text;
+                        // CORREÇÃO PRINCIPAL: O proxy retorna texto puro, não JSON
+                        const responseText = await response.text();
+                        
+                        // Tenta parsear como JSON, mas se falhar, usa o texto diretamente
+                        let generatedText = responseText;
+                        try {
+                            const possibleJson = JSON.parse(responseText);
+                            if (possibleJson?.text) {
+                                generatedText = possibleJson.text;
+                            } else if (possibleJson?.candidates?.[0]?.content?.parts?.[0]?.text) {
+                                generatedText = possibleJson.candidates[0].content.parts[0].text;
+                            }
+                        } catch (jsonError) {
+                            // Não é JSON, usa o texto diretamente (comportamento normal do proxy)
+                            console.log('Resposta não é JSON, usando texto diretamente');
+                        }
 
-                        if (text) {
-                            generatedPlan = text;
+                        if (generatedText && generatedText.trim().length > 0) {
+                            generatedPlan = generatedText;
                             currentPage = 'result';
                         } else {
-                            error = 'Não foi possível gerar o plano de aula. A resposta da API foi inesperada.';
-                            console.error("Resposta inesperada da API:", result);
+                            error = 'Não foi possível gerar o plano de aula. A resposta da API foi vazia.';
+                            console.error("Resposta vazia da API:", responseText);
                         }
-                        break; // Sai do loop de tentativas se obteve sucesso ou um erro não relacionado a rate limit
+                        break; // Sai do loop de tentativas se obteve sucesso
 
                     } catch (err) {
-                        error = `Erro ao gerar o plano de aula: ${err.message}`;
+                        if (err.name === 'AbortError') {
+                            error = 'A requisição demorou muito. Tente novamente.';
+                        } else {
+                            error = `Erro ao gerar o plano de aula: ${err.message}`;
+                        }
                         console.error('Erro detalhado:', err);
+                        
                         // Se for a última tentativa e ainda falhar, o erro será mostrado para o usuário
                         if (i === maxRetries - 1) {
                             error = `Falha após ${maxRetries} tentativas. Erro: ${err.message}`;
