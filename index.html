@@ -189,15 +189,13 @@
             body: JSON.stringify({ prompt })
           });
 
-          if (response.status === 429) {
-            const delay = baseDelay * Math.pow(2, i);
-            console.log(\`Limite de requisições excedido. Tentando novamente em \${delay / 1000} segundos...\`);
-            await new Promise(res => setTimeout(res, delay));
-            continue;
+          const contentType = response.headers.get("content-type");
+          if (!response.ok) {
+            throw new Error(`Erro HTTP! status: ${response.status}`);
           }
 
-          if (!response.ok) {
-            throw new Error(\`Erro HTTP! status: \${response.status}\`);
+          if (!contentType || !contentType.includes("application/json")) {
+            throw new Error("Resposta não está em formato JSON. Possível erro de proxy ou URL.");
           }
 
           const result = await response.json();
@@ -213,10 +211,13 @@
           break;
 
         } catch (err) {
-          error = \`Erro ao gerar o plano de aula: \${err.message}\`;
+          error = `Erro ao gerar o plano de aula: ${err.message}`;
           console.error('Erro detalhado:', err);
           if (i === maxRetries - 1) {
-            error = \`Falha após \${maxRetries} tentativas. Erro: \${err.message}\`;
+            error = `Falha após ${maxRetries} tentativas. Erro: ${err.message}`;
+          } else {
+            const delay = baseDelay * Math.pow(2, i);
+            await new Promise(res => setTimeout(res, delay));
           }
         }
       }
