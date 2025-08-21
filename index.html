@@ -121,23 +121,73 @@
             };
 
             const generateLessonPlan = async () => {
-                const prompt = `
-                    Você é um assistente pedagógico especializado em criar planos de aula. Sua tarefa é elaborar um plano de aula completo e profissional, formatado com títulos em negrito (por exemplo, **Disciplina:**) e listas, a partir das seguintes informações fornecidas por um professor. Não inclua nenhuma introdução ou texto extra, apenas o plano de aula final.
+    const prompt = `
+        Você é um assistente pedagógico especializado em criar planos de aula. Sua tarefa é elaborar um plano de aula completo e profissional, formatado com títulos em negrito (por exemplo, **Disciplina:**) e listas, a partir das seguintes informações fornecidas por um professor. Não inclua nenhuma introdução ou texto extra, apenas o plano de aula final.
 
-                    **Informações para o Plano de Aula:**
-                    - **Disciplina:** ${formData.subject}
-                    - **Conteúdo:** ${formData.topic}
-                    - **Público-alvo / Série:** ${formData.gradeLevel}
-                    - **Duração:** ${formData.duration} minutos
-                    - **Objetivo(s):** ${formData.objective}
-                    - **Desenvolvimento da Aula (Atividades):** ${formData.activities}
-                    - **Recursos e Materiais:** ${formData.materials}
-                    - **Avaliação:** ${formData.assessment}
-                `;
+        **Informações para o Plano de Aula:**
+        - **Disciplina:** ${formData.subject}
+        - **Conteúdo:** ${formData.topic}
+        - **Público-alvo / Série:** ${formData.gradeLevel}
+        - **Duração:** ${formData.duration} minutos
+        - **Objetivo(s):** ${formData.objective}
+        - **Desenvolvimento da Aula (Atividades):** ${formData.activities}
+        - **Recursos e Materiais:** ${formData.materials}
+        - **Avaliação:** ${formData.assessment}
+    `;
 
-                const payload = {
-                    contents: [{ parts: [{ text: prompt }] }],
-                };
+    // URL do proxy que configuramos para contornar o erro de CORS e autenticação
+    const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://us-central1-cors-proxy-ai-416919.cloudfunctions.net/proxy-gemini');
+    
+    const maxRetries = 3;
+    const baseDelay = 1000;
+
+    for (let i = 0; i < maxRetries; i++) {
+        try {
+            // Faz a requisição para o proxy, que redirecionará para o Gemini
+            const response = await fetch(proxyUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ prompt: prompt }) // Envia o prompt no formato que o proxy espera
+            });
+
+            if (response.status === 429) {
+                const delay = baseDelay * Math.pow(2, i);
+                console.log(`Limite de requisições excedido. Tentando novamente em ${delay / 1000} segundos...`);
+                await new Promise(res => setTimeout(res, delay));
+                continue;
+            }
+
+            if (!response.ok) {
+                throw new Error(`Erro HTTP! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            // A resposta do proxy já é o texto gerado pelo Gemini
+            const text = result?.text || result?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+            if (text) {
+                generatedPlan = text;
+                currentPage = 'result';
+            } else {
+                error = 'Não foi possível gerar o plano de aula. A resposta da API foi inesperada.';
+                console.error("Resposta inesperada da API:", result);
+            }
+            break; // Sai do loop de tentativas se obteve sucesso ou um erro não relacionado a rate limit
+
+        } catch (err) {
+            error = `Erro ao gerar o plano de aula: ${err.message}`;
+            console.error('Erro detalhado:', err);
+            // Se for a última tentativa e ainda falhar, o erro será mostrado para o usuário
+            if (i === maxRetries - 1) {
+                error = `Falha após ${maxRetries} tentativas. Erro: ${err.message}`;
+            }
+        }
+    }
+    isLoading = false;
+    render();
+};
                 const apiKey = "";
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
 
