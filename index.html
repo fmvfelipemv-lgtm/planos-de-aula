@@ -12,20 +12,6 @@
             margin: 0;
             padding: 0;
         }
-        .prose h1, .prose h2, .prose h3 {
-            color: #1f2937;
-            font-weight: 700;
-            margin-top: 1.5em;
-        }
-        .prose h1.dark\:prose-invert, .prose h2.dark\:prose-invert, .prose h3.dark\:prose-invert {
-            color: #f9fafb;
-        }
-        .prose ul, .prose ol {
-            padding-left: 1.5em;
-        }
-        .prose li {
-            margin-bottom: 0.5em;
-        }
         .floating-item {
             animation: float-1 6s ease-in-out infinite;
         }
@@ -51,10 +37,6 @@
             0% { transform: translate(0, 0) rotate(0deg); }
             50% { transform: translate(20px, -15px) rotate(10deg); }
             100% { transform: translate(0, 0) rotate(0deg); }
-        }
-        @keyframes fade-in {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
@@ -95,10 +77,6 @@
             let error = null;
             let copiedMessage = false;
 
-            const checkLibraries = () => {
-                return typeof html2canvas !== 'undefined' && typeof jspdf !== 'undefined';
-            };
-
             const render = () => {
                 appContainer.innerHTML = '';
                 if (currentPage === 'form') {
@@ -123,88 +101,86 @@
             };
 
             const generateLessonPlan = async () => {
-                const prompt = `Crie um plano de aula com base nestas informações:
-Disciplina: ${formData.subject}
-Conteúdo: ${formData.topic}
-Série: ${formData.gradeLevel}
-Duração: ${formData.duration} minutos
-Objetivo: ${formData.objective}
-Atividades: ${formData.activities}
-Materiais: ${formData.materials}
-Avaliação: ${formData.assessment}
-
-Formate com títulos em negrito usando **Título:** e liste os itens.`;
-
-                const maxRetries = 3;
-                const baseDelay = 1000;
-
-                for (let i = 0; i < maxRetries; i++) {
-                    try {
-                        const controller = new AbortController();
-                        const timeoutId = setTimeout(() => controller.abort(), 30000);
-
-                        // API alternativa mais confiável
-                        const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=AIzaSyC_3vL3r_placeholder_key', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({
-                                contents: [{
-                                    parts: [{
-                                        text: prompt
-                                    }]
-                                }]
-                            }),
-                            signal: controller.signal
-                        });
-
-                        clearTimeout(timeoutId);
-
-                        if (!response.ok) {
-                            throw new Error(`Erro HTTP! status: ${response.status}`);
-                        }
-
-                        const result = await response.json();
-                        const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
-
-                        if (text) {
-                            generatedPlan = text;
-                            currentPage = 'result';
-                            break;
-                        } else {
-                            error = 'Não foi possível gerar o plano de aula.';
-                        }
-                    } catch (err) {
-                        error = `Erro: ${err.message}`;
-                        if (i === maxRetries - 1) {
-                            // Fallback: gerar um plano básico localmente
-                            generatedPlan = `**PLANO DE AULA**
-
-**Disciplina:** ${formData.subject}
-**Conteúdo:** ${formData.topic}
-**Série:** ${formData.gradeLevel}
-**Duração:** ${formData.duration} minutos
-
-**OBJETIVOS**
-${formData.objective}
-
-**DESENVOLVIMENTO**
-${formData.activities}
-
-**MATERIAIS**
-${formData.materials}
-
-**AVALIAÇÃO**
-${formData.assessment}
-
-*Plano gerado localmente devido a problemas de conexão*`;
-                            currentPage = 'result';
-                        }
-                    }
+                try {
+                    // Gerar plano detalhado baseado nos dados fornecidos
+                    generatedPlan = generateDetailedPlan(formData);
+                    currentPage = 'result';
+                } catch (err) {
+                    error = 'Erro ao gerar plano: ' + err.message;
                 }
                 isLoading = false;
                 render();
+            };
+
+            const generateDetailedPlan = (data) => {
+                const { subject, topic, gradeLevel, duration, objective, activities, materials, assessment } = data;
+                
+                return `**PLANO DE AULA COMPLETO**
+
+**DISCIPLINA:** ${subject.toUpperCase()}
+**TEMA:** ${topic}
+**SÉRIE/ANO:** ${gradeLevel}
+**DURAÇÃO:** ${duration} minutos (${Math.floor(duration/60)}h${duration%60}min)
+
+**OBJETIVOS ESPECÍFICOS**
+• Compreender o conceito de ${topic.toLowerCase()}
+• Identificar ${topic.toLowerCase()} em diferentes contextos
+• Aplicar os conhecimentos sobre ${topic.toLowerCase()} em situações práticas
+• Desenvolver habilidades de análise e interpretação
+• ${objective || 'Promover aprendizagem significativa'}
+
+**DESENVOLVIMENTO METODOLÓGICO**
+
+**1. ABERTURA (${Math.floor(duration*0.1)} minutos)**
+• Apresentação do tema e objetivos da aula
+• Atividade motivadora: questionamento inicial sobre ${topic.toLowerCase()}
+• Contextualização com situações do cotidiano
+
+**2. EXPOSIÇÃO TEÓRICA (${Math.floor(duration*0.3)} minutos)**
+• Explicação conceitual sobre ${topic.toLowerCase()}
+• Exemplificação com casos concretos
+• Utilização de recursos visuais e audiovisuais
+• Interação com os estudantes através de questionamentos
+
+**3. ATIVIDADES PRÁTICAS (${Math.floor(duration*0.4)} minutos)**
+• ${activities || 'Exercícios de aplicação prática'}
+• Trabalho em grupo ou individual
+• Resolução de problemas relacionados ao tema
+• Discussão e debate sobre os resultados
+
+**4. ENCERRAMENTO (${Math.floor(duration*0.2)} minutos)**
+• Síntese dos principais conceitos abordados
+• Retomada dos objetivos iniciais
+• Espaço para dúvidas e considerações finais
+• Preparação para a próxima aula
+
+**RECURSOS DIDÁTICOS**
+• ${materials || 'Materiais básicos de ensino'}
+• Quadro branco ou negro
+• Projetor multimídia (se disponível)
+• Materiais impressos e apostilas
+• Recursos audiovisuais complementares
+
+**INSTRUMENTOS DE AVALIAÇÃO**
+• ${assessment || 'Avaliação contínua do processo'}
+• Participação nas atividades propostas
+• Resolução dos exercícios práticos
+• Observação do engajamento durante as explicações
+• Autoavaliação dos estudantes
+
+**REFERÊNCIAS BIBLIOGRÁFICAS**
+• Livros didáticos da disciplina
+• Materiais complementares específicos
+• Recursos educacionais digitais
+• Documentos oficiais da base curricular
+
+**OBSERVAÇÕES**
+• Ajustar o tempo conforme o ritmo da turma
+• Considerar as particularidades dos estudantes
+• Manter ambiente propício para aprendizagem
+• Promover inclusão e participação de todos
+
+*Plano pedagógico gerado automaticamente - ${new Date().toLocaleDateString('pt-BR')}*`;
             };
 
             const handleCopy = () => {
@@ -224,11 +200,6 @@ ${formData.assessment}
             };
 
             const handleSavePdf = async () => {
-                if (!checkLibraries()) {
-                    alert('Bibliotecas de PDF não carregadas. Recarregue a página.');
-                    return;
-                }
-
                 try {
                     const element = document.getElementById('plan-content');
                     const canvas = await html2canvas(element, {
@@ -262,7 +233,7 @@ ${formData.assessment}
                     if (trimmedLine.startsWith('**') && trimmedLine.endsWith('**')) {
                         if (currentTitle) {
                             sections.push({ 
-                                title: currentTitle.replace(/\*\*/g, '').toUpperCase(), 
+                                title: currentTitle.replace(/\*\*/g, ''), 
                                 content: currentContent.trim() 
                             });
                         }
@@ -275,7 +246,7 @@ ${formData.assessment}
 
                 if (currentTitle) {
                     sections.push({ 
-                        title: currentTitle.replace(/\*\*/g, '').toUpperCase(), 
+                        title: currentTitle.replace(/\*\*/g, ''), 
                         content: currentContent.trim() 
                     });
                 }
@@ -290,12 +261,12 @@ ${formData.assessment}
                         <div class="space-y-4">
                             ${Object.entries({
                                 subject: 'Disciplina',
-                                topic: 'Conteúdo',
-                                gradeLevel: 'Público-alvo / Série',
+                                topic: 'Conteúdo/Tema',
+                                gradeLevel: 'Série/Ano',
                                 duration: 'Duração (minutos)',
                                 objective: 'Objetivo(s)',
-                                activities: 'Desenvolvimento da Aula (Atividades)',
-                                materials: 'Recursos e Materiais',
+                                activities: 'Atividades',
+                                materials: 'Materiais',
                                 assessment: 'Avaliação'
                             }).map(([key, label]) => `
                                 <div>
@@ -314,61 +285,68 @@ ${formData.assessment}
                             `).join('')}
                         </div>
                         ${error ? `<div class="text-red-500 bg-red-100 p-3 rounded-lg mt-4">${error}</div>` : ''}
-                        <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-200 mt-6">
+                        <button type="submit" class="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition duration-200 mt-6">
                             ${isLoading ? 'Gerando...' : 'Gerar Plano de Aula'}
                         </button>
                     </form>
                 `;
                 appContainer.innerHTML = formHTML;
 
-                document.getElementById('lesson-form').addEventListener('submit', handleSubmit);
-                document.querySelectorAll('input, textarea').forEach(input => {
-                    input.addEventListener('input', (e) => {
-                        handleInputChange(e.target.name, e.target.value);
-                    });
+                const form = document.getElementById('lesson-form');
+                form.onsubmit = handleSubmit;
+
+                // Adicionar event listeners para os inputs
+                form.querySelectorAll('input, textarea').forEach(input => {
+                    input.oninput = (e) => handleInputChange(e.target.name, e.target.value);
                 });
             };
 
             const renderResult = () => {
                 const parsedPlan = parsePlan(generatedPlan);
-                const colors = ['bg-blue-100', 'bg-green-100', 'bg-yellow-100', 'bg-red-100', 'bg-purple-100', 'bg-pink-100', 'bg-indigo-100'];
-                const darkColors = ['dark:bg-blue-800', 'dark:bg-green-800', 'dark:bg-yellow-800', 'dark:bg-red-800', 'dark:bg-purple-800', 'dark:bg-pink-800', 'dark:bg-indigo-800'];
+                const colors = ['bg-blue-100', 'bg-green-100', 'bg-yellow-100', 'bg-red-100', 'bg-purple-100', 'bg-pink-100'];
+                const darkColors = ['dark:bg-blue-800', 'dark:bg-green-800', 'dark:bg-yellow-800', 'dark:bg-red-800', 'dark:bg-purple-800', 'dark:bg-pink-800'];
 
                 const resultHTML = `
                     <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-4xl mx-auto p-6">
                         <h2 class="text-2xl font-bold text-gray-800 dark:text-white text-center mb-6">Plano de Aula Gerado</h2>
                         <div id="plan-content" class="space-y-4">
                             ${parsedPlan.map((section, index) => `
-                                <div class="p-4 rounded-xl ${colors[index % colors.length]} ${darkColors[index % darkColors.length]}">
-                                    <h3 class="text-lg font-bold text-gray-800 dark:text-white mb-2">${section.title}</h3>
-                                    <div class="text-gray-700 dark:text-gray-300 whitespace-pre-line">${section.content}</div>
+                                <div class="p-6 rounded-xl ${colors[index % colors.length]} ${darkColors[index % darkColors.length]}">
+                                    <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-3">${section.title}</h3>
+                                    <div class="text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed">
+                                        ${section.content}
+                                    </div>
                                 </div>
                             `).join('')}
                         </div>
-                        <div class="flex flex-wrap gap-3 justify-center mt-6">
-                            <button onclick="handleCopy()" class="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2">
+                        <div class="flex flex-wrap gap-3 justify-center mt-8">
+                            <button id="copy-btn" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
                                 📋 Copiar
                             </button>
-                            <button onclick="handleShareWhatsApp()" class="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2">
+                            <button id="whatsapp-btn" class="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition">
                                 📱 WhatsApp
                             </button>
-                            <button onclick="handleSavePdf()" class="bg-red-600 text-white px-4 py-2 rounded-lg flex items-center gap-2">
-                                📄 PDF
+                            <button id="pdf-btn" class="bg-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition">
+                                📄 Salvar PDF
                             </button>
-                            <button onclick="currentPage = 'form'; render();" class="bg-gray-600 text-white px-4 py-2 rounded-lg">
+                            <button id="back-btn" class="bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-700 transition">
                                 ↩ Voltar
                             </button>
                         </div>
-                        ${copiedMessage ? '<div class="text-green-600 text-center mt-4">✓ Copiado com sucesso!</div>' : ''}
+                        ${copiedMessage ? '<div class="text-green-600 text-center mt-4 font-semibold">✓ Copiado para a área de transferência!</div>' : ''}
                     </div>
                 `;
                 appContainer.innerHTML = resultHTML;
-            };
 
-            // Expor funções globalmente para os botões
-            window.handleCopy = handleCopy;
-            window.handleShareWhatsApp = handleShareWhatsApp;
-            window.handleSavePdf = handleSavePdf;
+                // Adicionar event listeners corretamente
+                document.getElementById('copy-btn').onclick = handleCopy;
+                document.getElementById('whatsapp-btn').onclick = handleShareWhatsApp;
+                document.getElementById('pdf-btn').onclick = handleSavePdf;
+                document.getElementById('back-btn').onclick = () => {
+                    currentPage = 'form';
+                    render();
+                };
+            };
 
             render();
         });
