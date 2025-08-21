@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Plano de Aula Consciente</title>
+    <title>Plano de Aula Inteligente</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
@@ -45,6 +45,10 @@
         @keyframes spinner {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+        .info-header {
+            font-size: 1.5rem;
+            font-weight: 800;
         }
     </style>
 </head>
@@ -207,7 +211,7 @@
             };
 
             const generateConsciousPlan = (data) => {
-                const { subject, topic, gradeLevel, duration, objective, activities, materials, assessment } = data;
+                const { subject, topic, gradeLevel, duration } = data;
                 const gradeGroup = getGradeLevelGroup(gradeLevel);
                 
                 // Selecionar metodologia apropriada
@@ -225,11 +229,6 @@
                     }
                 }
                 
-                // Adicionar atividade personalizada se fornecida
-                if (activities && activities.trim() !== '') {
-                    selectedActivities.push(activities);
-                }
-                
                 // Selecionar recursos
                 const selectedResources = [];
                 for (let i = 0; i < 4; i++) {
@@ -237,11 +236,6 @@
                     if (!selectedResources.includes(pedagogicalKnowledge.resources[randomIndex])) {
                         selectedResources.push(pedagogicalKnowledge.resources[randomIndex]);
                     }
-                }
-                
-                // Adicionar material personalizado se fornecido
-                if (materials && materials.trim() !== '') {
-                    selectedResources.push(materials);
                 }
                 
                 // Selecionar métodos de avaliação
@@ -253,11 +247,6 @@
                     }
                 }
                 
-                // Adicionar avaliação personalizada se fornecida
-                if (assessment && assessment.trim() !== '') {
-                    selectedAssessments.push(assessment);
-                }
-                
                 // Calcular distribuição de tempo com base na duração
                 const totalMinutes = parseInt(duration);
                 const introductionTime = Math.floor(totalMinutes * 0.15);
@@ -265,28 +254,38 @@
                 const conclusionTime = Math.floor(totalMinutes * 0.15);
                 const assessmentTime = Math.floor(totalMinutes * 0.10);
                 
-                return `**PLANO DE AULA CONSCIENTE**
+                // Gerar objetivos específicos baseados no tema
+                const specificObjectives = [
+                    `Compreender os conceitos fundamentais de ${topic.toLowerCase()}`,
+                    `Analisar a importância de ${topic.toLowerCase()} no contexto atual`,
+                    `Aplicar os conhecimentos sobre ${topic.toLowerCase()} em situações práticas`,
+                    `Desenvolver habilidades críticas em relação a ${topic.toLowerCase()}`,
+                    `Relacionar ${topic.toLowerCase()} com outras áreas do conhecimento`
+                ];
+                
+                return `**PLANO DE AULA INTELIGENTE**
 
-**DISCIPLINA:** ${subject.toUpperCase()}
-**TEMA:** ${topic}
-**SÉRIE/ANO:** ${gradeLevel}
-**DURAÇÃO:** ${duration} minutos
-**METODOLOGIA PRINCIPAL:** ${randomMethodology}
+**INFORMAÇÕES GERAIS**
+**Disciplina:** ${subject}
+**Tema Central:** ${topic}
+**Série/Ano:** ${gradeLevel}
+**Duração:** ${duration} minutos
+**Metodologia Principal:** ${randomMethodology}
 
 **OBJETIVOS DE APRENDIZAGEM**
-• Compreender os conceitos fundamentais de ${topic.toLowerCase()} e sua aplicação prática
-• Desenvolver habilidades de análise crítica sobre ${topic.toLowerCase()}
-• ${objective || `Relacionar ${topic.toLowerCase()} com situações do cotidiano e contextos interdisciplinares`}
-• Estimular o trabalho colaborativo e a expressão de ideias
-• Promover a autonomia na construção do conhecimento
+• ${specificObjectives[0]}
+• ${specificObjectives[1]}
+• ${specificObjectives[2]}
+• ${specificObjectives[3]}
+• ${specificObjectives[4]}
 
 **DESENVOLVIMENTO DA AULA**
 
 **Introdução (${introductionTime} minutos)**
-• Apresentação do tema através de uma situação-problema ou questão mobilizadora
-• Levantamento dos conhecimentos prévios dos estudantes sobre ${topic.toLowerCase()}
-• Contextualização histórica e social de ${topic.toLowerCase()}
-• Explicitação dos objetivos de aprendizagem e da metodologia a ser utilizada
+• Apresentação do tema através de uma situação-problema contextualizada
+• Levantamento dos conhecimentos prévios dos estudantes
+• Contextualização histórica e social do tema abordado
+• Explicitação dos objetivos de aprendizagem e da metodologia
 
 **Desenvolvimento (${developmentTime} minutos)**
 • Atividade 1: ${selectedActivities[0]}
@@ -313,9 +312,9 @@ ${selectedResources.map(resource => `• ${resource}`).join('\n')}
 ${selectedAssessments.map(assessment => `  - ${assessment}`).join('\n')}
 
 **REFERÊNCIAS BIBLIOGRÁFICAS SUGERIDAS**
-• Livros didáticos atualizados de ${subject.toLowerCase()}
-• Artigos científicos recentes sobre ${topic.toLowerCase()}
-• Documentos curriculares oficiais (BNCC)
+• Livros didáticos atualizados da disciplina
+• Artigos científicos recentes sobre o tema
+• Documentos curriculares oficiais
 • Sites educacionais especializados
 • Obras literárias relacionadas à temática
 
@@ -326,7 +325,7 @@ ${selectedAssessments.map(assessment => `  - ${assessment}`).join('\n')}
 • Propor extensões e aprofundamentos para estudantes com maior facilidade
 • Manter registro das estratégias que funcionaram bem para futuro planejamento
 
-*Plano pedagógico consciente gerado para ${userEmail} - ${new Date().toLocaleDateString('pt-BR')}*`;
+*Plano pedagógico inteligente - ${new Date().toLocaleDateString('pt-BR')}*`;
             };
 
             const handleCopy = () => {
@@ -373,7 +372,7 @@ ${selectedAssessments.map(assessment => `  - ${assessment}`).join('\n')}
                         heightLeft -= pageHeight;
                     }
                     
-                    pdf.save('plano-de-aula-consciente.pdf');
+                    pdf.save('plano-de-aula-inteligente.pdf');
                     
                 } catch (err) {
                     alert('Erro ao gerar PDF: ' + err.message);
@@ -415,8 +414,8 @@ ${selectedAssessments.map(assessment => `  - ${assessment}`).join('\n')}
             const renderEmailForm = () => {
                 const emailHTML = `
                     <div class="relative p-6 md:p-10 bg-white dark:bg-gray-800 rounded-3xl shadow-xl w-full max-w-2xl mx-auto space-y-6">
-                        <h2 class="text-3xl font-bold text-gray-800 dark:text-white text-center mb-2">Plano de Aula Consciente</h2>
-                        <p class="text-gray-600 dark:text-gray-400 text-center mb-6">Sistema inteligente de planejamento pedagógico</p>
+                        <h2 class="text-3xl font-bold text-gray-800 dark:text-white text-center mb-2">Plano de Aula Inteligente</h2>
+                        <p class="text-gray-600 dark:text-gray-400 text-center mb-6">Sistema avançado de planejamento pedagógico</p>
                         
                         <form id="email-form" class="space-y-4">
                             <div>
@@ -446,7 +445,7 @@ ${selectedAssessments.map(assessment => `  - ${assessment}`).join('\n')}
                             <h3 class="font-bold text-blue-800 dark:text-blue-300 mb-2">Como funciona?</h3>
                             <p class="text-blue-700 dark:text-blue-300 text-sm">
                                 Nosso sistema utiliza conhecimentos pedagógicos consolidados para criar planos de aula 
-                                conscientes e personalizados, indo além das informações básicas fornecidas.
+                                inteligentes e personalizados, gerando conteúdo original com base em suas necessidades.
                             </p>
                         </div>
                     </div>
@@ -460,15 +459,15 @@ ${selectedAssessments.map(assessment => `  - ${assessment}`).join('\n')}
             const renderForm = () => {
                 const formHTML = `
                     <form id="lesson-form" class="relative p-6 md:p-10 bg-white dark:bg-gray-800 rounded-3xl shadow-xl w-full max-w-2xl mx-auto space-y-6">
-                        <h2 class="text-3xl font-bold text-gray-800 dark:text-white text-center mb-2">Plano de Aula Consciente</h2>
-                        <p class="text-gray-600 dark:text-gray-400 text-center mb-6">Preencha os campos abaixo para gerar um plano pedagógico inteligente</p>
+                        <h2 class="text-3xl font-bold text-gray-800 dark:text-white text-center mb-2">Plano de Aula Inteligente</h2>
+                        <p class="text-gray-600 dark:text-gray-400 text-center mb-6">Informe os dados básicos para gerar um plano pedagógico completo</p>
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             ${Object.entries({
-                                subject: 'Disciplina',
-                                topic: 'Conteúdo/Tema',
-                                gradeLevel: 'Série/Ano',
-                                duration: 'Duração (minutos)'
+                                subject: 'Disciplina*',
+                                topic: 'Tema Central*',
+                                gradeLevel: 'Série/Ano*',
+                                duration: 'Duração (minutos)*'
                             }).map(([key, label]) => `
                                 <div>
                                     <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">${label}</label>
@@ -478,25 +477,18 @@ ${selectedAssessments.map(assessment => `  - ${assessment}`).join('\n')}
                             `).join('')}
                         </div>
                         
-                        <div class="space-y-4">
-                            ${Object.entries({
-                                objective: 'Objetivo(s) de Aprendizagem',
-                                activities: 'Atividades Sugeridas (opcional)',
-                                materials: 'Materiais Específicos (opcional)',
-                                assessment: 'Avaliação Desejada (opcional)'
-                            }).map(([key, label]) => `
-                                <div>
-                                    <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">${label}</label>
-                                    <textarea name="${key}" 
-                                        class="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition min-h-[100px]">${formData[key]}</textarea>
-                                </div>
-                            `).join('')}
+                        <div class="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg border border-yellow-200 dark:border-yellow-700">
+                            <h3 class="font-bold text-yellow-800 dark:text-yellow-300 mb-2">💡 Como usar</h3>
+                            <p class="text-yellow-700 dark:text-yellow-300 text-sm">
+                                Insira apenas as informações básicas. Nosso sistema irá gerar um plano completo 
+                                com objetivos, atividades, recursos e avaliações baseados em conhecimentos pedagógicos.
+                            </p>
                         </div>
                         
                         ${error ? `<div class="text-red-500 bg-red-100 p-3 rounded-lg mt-4">${error}</div>` : ''}
                         
                         <button type="submit" class="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition duration-200 mt-6 flex items-center justify-center">
-                            ${isLoading ? '<div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-6 w-6 mr-2"></div> Gerando Plano Consciente...' : 'Gerar Plano de Aula Consciente'}
+                            ${isLoading ? '<div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-6 w-6 mr-2"></div> Gerando Conteúdo Inteligente...' : 'Gerar Plano de Aula Inteligente'}
                         </button>
                     </form>
                 `;
@@ -513,23 +505,30 @@ ${selectedAssessments.map(assessment => `  - ${assessment}`).join('\n')}
 
             const renderResult = () => {
                 const parsedPlan = parsePlan(generatedPlan);
-                const colors = ['bg-blue-100', 'bg-green-100', 'bg-yellow-100', 'bg-red-100', 'bg-purple-100', 'bg-pink-100'];
-                const darkColors = ['dark:bg-blue-800', 'dark:bg-green-800', 'dark:bg-yellow-800', 'dark:bg-red-800', 'dark:bg-purple-800', 'dark:bg-pink-800'];
-
+                
                 const resultHTML = `
                     <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-4xl mx-auto p-6">
-                        <h2 class="text-2xl font-bold text-gray-800 dark:text-white text-center mb-4">Plano de Aula Consciente</h2>
-                        <p class="text-gray-600 dark:text-gray-400 text-center mb-6">Gerado para: ${userEmail}</p>
+                        <h2 class="text-3xl font-bold text-gray-800 dark:text-white text-center mb-4">PLANO DE AULA INTELIGENTE</h2>
                         
-                        <div id="plan-content" class="space-y-4">
-                            ${parsedPlan.map((section, index) => `
-                                <div class="p-6 rounded-xl ${colors[index % colors.length]} ${darkColors[index % darkColors.length]} border border-gray-200 dark:border-gray-700">
-                                    <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-3">${section.title}</h3>
-                                    <div class="text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed">
-                                        ${section.content}
+                        <div id="plan-content" class="space-y-6">
+                            ${parsedPlan.map((section, index) => {
+                                let customContent = section.content;
+                                // Destacar informações principais na primeira seção
+                                if (index === 0) {
+                                    customContent = customContent.replace(/(Disciplina:|Tema Central:|Série\/Ano:|Duração:|Metodologia Principal:)/g, '<strong class="text-lg">$1</strong>');
+                                }
+                                
+                                return `
+                                <div class="p-6 rounded-xl bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 border border-gray-200 dark:border-gray-700">
+                                    <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-4 flex items-center">
+                                        ${index === 0 ? '📋 ' : index === 1 ? '🎯 ' : index === 2 ? '🔄 ' : index === 3 ? '📚 ' : index === 4 ? '📝 ' : '📌 '}
+                                        ${section.title}
+                                    </h3>
+                                    <div class="text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed ${index === 0 ? 'info-header' : ''}">
+                                        ${customContent}
                                     </div>
                                 </div>
-                            `).join('')}
+                            `}).join('')}
                         </div>
                         
                         <div class="flex flex-wrap gap-3 justify-center mt-8">
@@ -550,7 +549,7 @@ ${selectedAssessments.map(assessment => `  - ${assessment}`).join('\n')}
                         ${copiedMessage ? '<div class="text-green-600 text-center mt-4 font-semibold animate-pulse">✓ Copiado para a área de transferência!</div>' : ''}
                         
                         <div class="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
-                            <p>Plano gerado em ${new Date().toLocaleString('pt-BR')} | Sistema de Planejamento Consciente</p>
+                            <p>Plano gerado em ${new Date().toLocaleString('pt-BR')} | Sistema de Planejamento Inteligente</p>
                         </div>
                     </div>
                 `;
