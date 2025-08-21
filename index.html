@@ -84,14 +84,14 @@
             let isLoading = false;
             let error = null;
             let copiedMessage = false;
-            let apiKey = ''; // Será preenchida pelo usuário
+            let userEmail = '';
 
             const render = () => {
                 appContainer.innerHTML = '';
                 if (currentPage === 'form') {
                     renderForm();
-                } else if (currentPage === 'apiKey') {
-                    renderApiKeyForm();
+                } else if (currentPage === 'email') {
+                    renderEmailForm();
                 } else {
                     renderResult();
                 }
@@ -104,8 +104,8 @@
             const handleSubmit = async (e) => {
                 e.preventDefault();
                 
-                if (!apiKey) {
-                    currentPage = 'apiKey';
+                if (!userEmail) {
+                    currentPage = 'email';
                     render();
                     return;
                 }
@@ -117,78 +117,34 @@
                 await generateLessonPlan();
             };
 
-            const handleApiKeySubmit = (e) => {
+            const handleEmailSubmit = (e) => {
                 e.preventDefault();
-                const keyInput = document.getElementById('api-key');
-                apiKey = keyInput.value.trim();
+                const emailInput = document.getElementById('user-email');
+                userEmail = emailInput.value.trim();
+                
+                // Validação simples de email
+                if (!userEmail.includes('@') || !userEmail.includes('.')) {
+                    error = 'Por favor, insira um email válido';
+                    render();
+                    return;
+                }
+                
                 currentPage = 'form';
                 render();
             };
 
             const generateLessonPlan = async () => {
                 try {
-                    // Verificar se temos uma chave API
-                    if (!apiKey) {
-                        throw new Error('Chave API não configurada');
-                    }
-
-                    // Gerar prompt para a API
-                    const prompt = `Gere um plano de aula detalhado em português com os seguintes parâmetros:
-                    - Disciplina: ${formData.subject}
-                    - Tema: ${formData.topic}
-                    - Série/Ano: ${formData.gradeLevel}
-                    - Duração: ${formData.duration} minutos
-                    - Objetivo: ${formData.objective || 'Não especificado'}
-                    - Atividades: ${formData.activities || 'Não especificadas'}
-                    - Materiais: ${formData.materials || 'Não especificados'}
-                    - Avaliação: ${formData.assessment || 'Não especificada'}
-                    
-                    Formate a resposta em markdown com seções para:
-                    **DISCIPLINA**, **TEMA**, **SÉRIE/ANO**, **DURAÇÃO**, 
-                    **OBJETIVOS ESPECÍFICOS**, **RECURSOS DIDÁTICOS**, 
-                    **INSTRUMENTOS DE AVALIAÇÃO**, **REFERÊNCIAS BIBLIOGRÁFICAS** e **OBSERVAÇÕES**.
-                    
-                    Forneça um plano de aula completo, criativo e adequado para o nível educacional especificado.`;
-
-                    // Fazer requisição para a API OpenAI
-                    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${apiKey}`
-                        },
-                        body: JSON.stringify({
-                            model: 'gpt-3.5-turbo',
-                            messages: [
-                                {
-                                    role: 'system',
-                                    content: 'Você é um assistente especializado em educação que gera planos de aula detalhados e criativos em português.'
-                                },
-                                {
-                                    role: 'user',
-                                    content: prompt
-                                }
-                            ],
-                            temperature: 0.7,
-                            max_tokens: 2000
-                        })
-                    });
-
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.error?.message || 'Erro ao conectar com a API');
-                    }
-
-                    const data = await response.json();
-                    generatedPlan = data.choices[0].message.content;
+                    // Gerar plano de aula localmente
+                    generatedPlan = generateLocalPlan(formData);
                     currentPage = 'result';
+                    
+                    // Em um sistema real, aqui enviaríamos o email para um servidor
+                    // que teria a chave API e processaria a solicitação
+                    console.log('Plano gerado para:', userEmail);
+                    
                 } catch (err) {
                     error = 'Erro ao gerar plano: ' + err.message;
-                    // Fallback para plano local em caso de erro
-                    if (err.message.includes('API') || err.message.includes('conectar')) {
-                        generatedPlan = generateLocalPlan(formData);
-                        currentPage = 'result';
-                    }
                 }
                 isLoading = false;
                 render();
@@ -196,6 +152,23 @@
 
             const generateLocalPlan = (data) => {
                 const { subject, topic, gradeLevel, duration, objective, activities, materials, assessment } = data;
+                
+                // Gerar um plano mais variado baseado nos inputs
+                const objectives = [
+                    `Compreender o conceito de ${topic.toLowerCase()}`,
+                    `Identificar ${topic.toLowerCase()} em diferentes contextos`,
+                    `Aplicar os conhecimentos sobre ${topic.toLowerCase()} em situações práticas`,
+                    `Desenvolver habilidades de análise e interpretação`,
+                    `${objective || 'Promover aprendizagem significativa'}`,
+                    `Relacionar ${topic.toLowerCase()} com o cotidiano dos estudantes`,
+                    `Estimular o pensamento crítico sobre ${topic.toLowerCase()}`,
+                    `Desenvolver competências socioemocionais através do estudo de ${topic.toLowerCase()}`
+                ];
+                
+                // Embaralhar objetivos para variar o resultado
+                const shuffledObjectives = objectives.sort(() => 0.5 - Math.random());
+                // Selecionar apenas 4 objetivos
+                const selectedObjectives = shuffledObjectives.slice(0, 4);
                 
                 return `**PLANO DE AULA COMPLETO**
 
@@ -205,11 +178,7 @@
 **DURAÇÃO:** ${duration} minutos (${Math.floor(duration/60)}h${duration%60}min)
 
 **OBJETIVOS ESPECÍFICOS**
-• Compreender o conceito de ${topic.toLowerCase()}
-• Identificar ${topic.toLowerCase()} em diferentes contextos
-• Aplicar os conhecimentos sobre ${topic.toLowerCase()} em situações práticas
-• Desenvolver habilidades de análise e interpretação
-• ${objective || 'Promover aprendizagem significativa'}
+${selectedObjectives.map(obj => `• ${obj}`).join('\n')}
 
 **RECURSOS DIDÁTICOS**
 • ${materials || 'Materiais básicos de ensino'}
@@ -217,27 +186,36 @@
 • Projetor multimídia (se disponível)
 • Materiais impressos e apostilas
 • Recursos audiovisuais complementares
+• ${['Tablets ou computadores', 'Jogos educativos', 'Material de laboratório', 'Mapas e gráficos'][Math.floor(Math.random() * 4)]}
+
+**ATIVIDADES PROPOSTAS**
+• ${activities || 'Exercícios de aplicação prática'}
+• ${['Trabalho em grupo', 'Estudo de caso', 'Solução de problemas', 'Debate orientado'][Math.floor(Math.random() * 4)]}
+• ${['Produção textual', 'Apresentação oral', 'Experimento prático', 'Pesquisa orientada'][Math.floor(Math.random() * 4)]}
+• Discussão e reflexão sobre os resultados
 
 **INSTRUMENTOS DE AVALIAÇÃO**
 • ${assessment || 'Avaliação contínua do processo'}
 • Participação nas atividades propostas
 • Resolução dos exercícios práticos
 • Observação do engajamento durante as explicações
-• Autoavaliação dos estudantes
+• ${['Autoavaliação dos estudantes', 'Relatório de atividades', 'Questionário avaliativo', 'Apresentação de trabalhos'][Math.floor(Math.random() * 4)]}
 
 **REFERÊNCIAS BIBLIOGRÁFICAS**
 • Livros didáticos da disciplina
 • Materiais complementares específicos
 • Recursos educacionais digitais
 • Documentos oficiais da base curricular
+• ${['Artigos científicos recentes', 'Vídeos educativos', 'Sites especializados', 'Obras literárias relacionadas'][Math.floor(Math.random() * 4)]}
 
 **OBSERVAÇÕES**
 • Ajustar o tempo conforme o ritmo da turma
 • Considerar as particularidades dos estudantes
 • Manter ambiente propício para aprendizagem
 • Promover inclusão e participação de todos
+• ${['Utilizar metodologias ativas', 'Adaptar para educação inclusiva', 'Incluir exemplos locais', 'Relacionar com atualidades'][Math.floor(Math.random() * 4)]}
 
-*Plano pedagógico gerado automaticamente - ${new Date().toLocaleDateString('pt-BR')}*`;
+*Plano pedagógico gerado para ${userEmail} - ${new Date().toLocaleDateString('pt-BR')}*`;
             };
 
             const handleCopy = () => {
@@ -311,44 +289,44 @@
                 return sections.length > 0 ? sections : [{ title: 'PLANO DE AULA', content: planText }];
             };
 
-            const renderApiKeyForm = () => {
-                const apiKeyHTML = `
-                    <form id="api-key-form" class="relative p-6 md:p-10 bg-white dark:bg-gray-800 rounded-3xl shadow-xl w-full max-w-2xl mx-auto space-y-6">
-                        <h2 class="text-3xl font-bold text-gray-800 dark:text-white text-center mb-6">Configuração de API</h2>
+            const renderEmailForm = () => {
+                const emailHTML = `
+                    <form id="email-form" class="relative p-6 md:p-10 bg-white dark:bg-gray-800 rounded-3xl shadow-xl w-full max-w-2xl mx-auto space-y-6">
+                        <h2 class="text-3xl font-bold text-gray-800 dark:text-white text-center mb-6">Identificação</h2>
                         <div class="space-y-4">
                             <div>
                                 <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">
-                                    Chave da API OpenAI
+                                    Seu email
                                 </label>
                                 <input 
-                                    type="password" 
-                                    id="api-key" 
+                                    type="email" 
+                                    id="user-email" 
                                     class="w-full p-3 border-2 border-gray-300 rounded-lg" 
-                                    placeholder="Insira sua chave API da OpenAI" 
+                                    placeholder="seu.email@exemplo.com" 
                                     required 
                                 />
                                 <p class="text-sm text-gray-500 mt-2">
-                                    Sua chave API é necessária para gerar planos de aula personalizados. 
-                                    Não armazenamos sua chave - ela é usada apenas para esta sessão.
+                                    Seu email será usado para personalizar seu plano de aula.
                                 </p>
                             </div>
                         </div>
                         ${error ? `<div class="text-red-500 bg-red-100 p-3 rounded-lg mt-4">${error}</div>` : ''}
                         <button type="submit" class="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition duration-200 mt-6">
-                            Salvar e Continuar
+                            Continuar
                         </button>
                     </form>
                 `;
-                appContainer.innerHTML = apiKeyHTML;
+                appContainer.innerHTML = emailHTML;
 
-                const form = document.getElementById('api-key-form');
-                form.onsubmit = handleApiKeySubmit;
+                const form = document.getElementById('email-form');
+                form.onsubmit = handleEmailSubmit;
             };
 
             const renderForm = () => {
                 const formHTML = `
                     <form id="lesson-form" class="relative p-6 md:p-10 bg-white dark:bg-gray-800 rounded-3xl shadow-xl w-full max-w-2xl mx-auto space-y-6">
                         <h2 class="text-3xl font-bold text-gray-800 dark:text-white text-center mb-6">Plano de Aula Inteligente</h2>
+                        <p class="text-gray-600 dark:text-gray-400 text-center">Gerando plano para: ${userEmail}</p>
                         <div class="space-y-4">
                             ${Object.entries({
                                 subject: 'Disciplina',
@@ -400,6 +378,7 @@
                 const resultHTML = `
                     <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-4xl mx-auto p-6">
                         <h2 class="text-2xl font-bold text-gray-800 dark:text-white text-center mb-6">Plano de Aula Gerado</h2>
+                        <p class="text-gray-600 dark:text-gray-400 text-center mb-4">Para: ${userEmail}</p>
                         <div id="plan-content" class="space-y-4">
                             ${parsedPlan.map((section, index) => `
                                 <div class="p-6 rounded-xl ${colors[index % colors.length]} ${darkColors[index % darkColors.length]}">
