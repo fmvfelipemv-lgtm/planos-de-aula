@@ -11,7 +11,6 @@
             font-family: 'Inter', sans-serif;
             margin: 0;
             padding: 0;
-            overflow: hidden; /* Impede rolagem dupla */
         }
         .floating-item {
             animation: float-1 6s ease-in-out infinite;
@@ -39,40 +38,6 @@
             50% { transform: translate(20px, -15px) rotate(10deg); }
             100% { transform: translate(0, 0) rotate(0deg); }
         }
-        
-        /* Estilos para scroll personalizado */
-        .scroll-container {
-            max-height: 80vh;
-            overflow-y: auto;
-            scrollbar-width: thin;
-            scrollbar-color: #8B5CF6 #E5E7EB;
-        }
-        
-        .scroll-container::-webkit-scrollbar {
-            width: 8px;
-        }
-        
-        .scroll-container::-webkit-scrollbar-track {
-            background: #E5E7EB;
-            border-radius: 10px;
-        }
-        
-        .scroll-container::-webkit-scrollbar-thumb {
-            background: #8B5CF6;
-            border-radius: 10px;
-        }
-        
-        .scroll-container::-webkit-scrollbar-thumb:hover {
-            background: #7C3AED;
-        }
-        
-        .scroll-container-dark::-webkit-scrollbar-track {
-            background: #4B5563;
-        }
-        
-        .scroll-container-dark::-webkit-scrollbar-thumb {
-            background: #7C3AED;
-        }
     </style>
 </head>
 <body class="min-h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden flex items-center justify-center p-4 relative">
@@ -84,9 +49,7 @@
     <div class="absolute top-1/3 left-10 text-9xl transform -rotate-10 floating-item-2">✂️</div>
     <div class="absolute bottom-1/3 right-5 text-9xl transform rotate-5 floating-item">🎨</div>
 
-    <div id="app-container" class="relative z-10 w-full flex items-center justify-center p-4">
-        <!-- O conteúdo será inserido aqui pelo JavaScript -->
-    </div>
+    <div id="app-container" class="relative z-10 w-full flex items-center justify-center p-4"></div>
 
     <div class="absolute bottom-4 right-4 text-3xl font-bold text-gray-500 dark:text-gray-400">
         by FeMaViei
@@ -293,41 +256,39 @@
 
             const renderForm = () => {
                 const formHTML = `
-                    <div class="scroll-container scroll-container-dark w-full max-w-2xl mx-auto">
-                        <form id="lesson-form" class="relative p-6 md:p-10 bg-white dark:bg-gray-800 rounded-3xl shadow-xl space-y-6">
-                            <h2 class="text-3xl font-bold text-gray-800 dark:text-white text-center mb-6">Plano de Aula</h2>
-                            <div class="space-y-4">
-                                ${Object.entries({
-                                    subject: 'Disciplina',
-                                    topic: 'Conteúdo/Tema',
-                                    gradeLevel: 'Série/Ano',
-                                    duration: 'Duração (minutos)',
-                                    objective: 'Objetivo(s)',
-                                    activities: 'Atividades',
-                                    materials: 'Materiais',
-                                    assessment: 'Avaliação'
-                                }).map(([key, label]) => `
-                                    <div>
-                                        <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">${label}</label>
-                                        ${key === 'duration' ? `
-                                            <input type="number" name="${key}" value="${formData[key]}" 
-                                                class="w-full p-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white" required />
-                                        ` : key === 'objective' || key === 'activities' || key === 'materials' || key === 'assessment' ? `
-                                            <textarea name="${key}" 
-                                                class="w-full p-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white min-h-[100px]">${formData[key]}</textarea>
-                                        ` : `
-                                            <input type="text" name="${key}" value="${formData[key]}" 
-                                                class="w-full p-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white" required />
-                                        `}
-                                    </div>
-                                `).join('')}
-                            </div>
-                            ${error ? `<div class="text-red-500 bg-red-100 dark:bg-red-900 p-3 rounded-lg mt-4">${error}</div>` : ''}
-                            <button type="submit" class="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition duration-200 mt-6">
-                                ${isLoading ? 'Gerando...' : 'Gerar Plano de Aula'}
-                            </button>
-                        </form>
-                    </div>
+                    <form id="lesson-form" class="relative p-6 md:p-10 bg-white dark:bg-gray-800 rounded-3xl shadow-xl w-full max-w-2xl mx-auto space-y-6">
+                        <h2 class="text-3xl font-bold text-gray-800 dark:text-white text-center mb-6">Plano de Aula</h2>
+                        <div class="space-y-4">
+                            ${Object.entries({
+                                subject: 'Disciplina',
+                                topic: 'Conteúdo/Tema',
+                                gradeLevel: 'Série/Ano',
+                                duration: 'Duração (minutos)',
+                                objective: 'Objetivo(s)',
+                                activities: 'Atividades',
+                                materials: 'Materiais',
+                                assessment: 'Avaliação'
+                            }).map(([key, label]) => `
+                                <div>
+                                    <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">${label}</label>
+                                    ${key === 'duration' ? `
+                                        <input type="number" name="${key}" value="${formData[key]}" 
+                                            class="w-full p-3 border-2 border-gray-300 rounded-lg" required />
+                                    ` : key === 'objective' || key === 'activities' || key === 'materials' || key === 'assessment' ? `
+                                        <textarea name="${key}" 
+                                            class="w-full p-3 border-2 border-gray-300 rounded-lg min-h-[100px]">${formData[key]}</textarea>
+                                    ` : `
+                                        <input type="text" name="${key}" value="${formData[key]}" 
+                                            class="w-full p-3 border-2 border-gray-300 rounded-lg" required />
+                                    `}
+                                </div>
+                            `).join('')}
+                        </div>
+                        ${error ? `<div class="text-red-500 bg-red-100 p-3 rounded-lg mt-4">${error}</div>` : ''}
+                        <button type="submit" class="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition duration-200 mt-6">
+                            ${isLoading ? 'Gerando...' : 'Gerar Plano de Aula'}
+                        </button>
+                    </form>
                 `;
                 appContainer.innerHTML = formHTML;
 
@@ -337,44 +298,42 @@
                 // Adicionar event listeners para os inputs
                 form.querySelectorAll('input, textarea').forEach(input => {
                     input.oninput = (e) => handleInputChange(e.target.name, e.target.value);
-                    input.value = formData[e.target.name] || '';
                 });
             };
 
             const renderResult = () => {
                 const parsedPlan = parsePlan(generatedPlan);
-                const colors = ['bg-blue-100 dark:bg-blue-800', 'bg-green-100 dark:bg-green-800', 'bg-yellow-100 dark:bg-yellow-800', 'bg-red-100 dark:bg-red-800', 'bg-purple-100 dark:bg-purple-800', 'bg-pink-100 dark:bg-pink-800'];
+                const colors = ['bg-blue-100', 'bg-green-100', 'bg-yellow-100', 'bg-red-100', 'bg-purple-100', 'bg-pink-100'];
+                const darkColors = ['dark:bg-blue-800', 'dark:bg-green-800', 'dark:bg-yellow-800', 'dark:bg-red-800', 'dark:bg-purple-800', 'dark:bg-pink-800'];
 
                 const resultHTML = `
-                    <div class="scroll-container scroll-container-dark w-full max-w-4xl mx-auto">
-                        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6">
-                            <h2 class="text-2xl font-bold text-gray-800 dark:text-white text-center mb-6">Plano de Aula Gerado</h2>
-                            <div id="plan-content" class="space-y-4">
-                                ${parsedPlan.map((section, index) => `
-                                    <div class="p-6 rounded-xl ${colors[index % colors.length]}">
-                                        <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-3">${section.title}</h3>
-                                        <div class="text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed">
-                                            ${section.content}
-                                        </div>
+                    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-4xl mx-auto p-6">
+                        <h2 class="text-2xl font-bold text-gray-800 dark:text-white text-center mb-6">Plano de Aula Gerado</h2>
+                        <div id="plan-content" class="space-y-4">
+                            ${parsedPlan.map((section, index) => `
+                                <div class="p-6 rounded-xl ${colors[index % colors.length]} ${darkColors[index % darkColors.length]}">
+                                    <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-3">${section.title}</h3>
+                                    <div class="text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed">
+                                        ${section.content}
                                     </div>
-                                `).join('')}
-                            </div>
-                            <div class="flex flex-wrap gap-3 justify-center mt-8">
-                                <button id="copy-btn" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
-                                    📋 Copiar
-                                </button>
-                                <button id="whatsapp-btn" class="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition">
-                                    📱 WhatsApp
-                                </button>
-                                <button id="pdf-btn" class="bg-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition">
-                                    📄 Salvar PDF
-                                </button>
-                                <button id="back-btn" class="bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-700 transition">
-                                    ↩ Voltar
-                                </button>
-                            </div>
-                            ${copiedMessage ? '<div class="text-green-600 text-center mt-4 font-semibold">✓ Copiado para a área de transferência!</div>' : ''}
+                                </div>
+                            `).join('')}
                         </div>
+                        <div class="flex flex-wrap gap-3 justify-center mt-8">
+                            <button id="copy-btn" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
+                                📋 Copiar
+                            </button>
+                            <button id="whatsapp-btn" class="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition">
+                                📱 WhatsApp
+                            </button>
+                            <button id="pdf-btn" class="bg-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition">
+                                📄 Salvar PDF
+                            </button>
+                            <button id="back-btn" class="bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-700 transition">
+                                ↩ Voltar
+                            </button>
+                        </div>
+                        ${copiedMessage ? '<div class="text-green-600 text-center mt-4 font-semibold">✓ Copiado para a área de transferência!</div>' : ''}
                     </div>
                 `;
                 appContainer.innerHTML = resultHTML;
