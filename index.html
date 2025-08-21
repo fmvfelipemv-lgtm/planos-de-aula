@@ -40,7 +40,8 @@
         }
     </style>
 </head>
-<body class="min-h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden flex items-center justify-center p-4 relative">
+<body class="min-h-screen bg-gray-50 dark:bg-gray-900 overflow-y-auto flex items-center justify-center p-4 relative">
+    <!-- Mudei overflow-hidden para overflow-y-auto ↑ -->
 
     <div class="absolute top-10 left-5 text-9xl transform -rotate-12 floating-item">✏️</div>
     <div class="absolute top-1/4 right-5 text-9xl transform rotate-12 floating-item-2">📎</div>
@@ -49,7 +50,8 @@
     <div class="absolute top-1/3 left-10 text-9xl transform -rotate-10 floating-item-2">✂️</div>
     <div class="absolute bottom-1/3 right-5 text-9xl transform rotate-5 floating-item">🎨</div>
 
-    <div id="app-container" class="relative z-10 w-full flex items-center justify-center p-4"></div>
+    <div id="app-container" class="relative z-10 w-full flex items-center justify-center p-4 my-8">
+    <!-- Adicionei my-8 ↑ para dar margem vertical -->
 
     <div class="absolute bottom-4 right-4 text-3xl font-bold text-gray-500 dark:text-gray-400">
         by FeMaViei
@@ -59,6 +61,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <script>
+        // ... (o restante do código JavaScript permanece exatamente igual)
         document.addEventListener('DOMContentLoaded', () => {
             const appContainer = document.getElementById('app-container');
             let currentPage = 'form';
