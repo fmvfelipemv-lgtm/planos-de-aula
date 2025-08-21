@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Plano de Aula Inteligente</title>
+    <title>Plano de Aula Consciente</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
@@ -48,7 +48,7 @@
         }
     </style>
 </head>
-<body class="min-h-screen bg-gray-50 dark:bg-gray-900 overflow-y-auto flex items-center justify-center p-4 relative">
+<body class="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 overflow-y-auto flex items-center justify-center p-4 relative">
 
     <div class="absolute top-10 left-5 text-9xl transform -rotate-12 floating-item">✏️</div>
     <div class="absolute top-1/4 right-5 text-9xl transform rotate-12 floating-item-2">📎</div>
@@ -69,7 +69,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const appContainer = document.getElementById('app-container');
-            let currentPage = 'form';
+            let currentPage = 'email';
             let formData = {
                 subject: '',
                 topic: '',
@@ -86,12 +86,68 @@
             let copiedMessage = false;
             let userEmail = '';
 
+            // Base de conhecimentos pedagógicos
+            const pedagogicalKnowledge = {
+                methodologies: [
+                    "Aprendizagem Baseada em Projetos",
+                    "Sala de Aula Invertida",
+                    "Aprendizagem Cooperativa",
+                    "Estudo de Caso",
+                    "Aprendizagem Baseada em Problemas",
+                    "Rotação por Estações",
+                    "Gamificação"
+                ],
+                activities: {
+                    fundamental1: [
+                        "Rodinha de conversa sobre o tema",
+                        "Produção de desenhos relacionados",
+                        "Jogos educativos em grupo",
+                        "Contação de histórias",
+                        "Atividades com materiais concretos"
+                    ],
+                    fundamental2: [
+                        "Debates orientados",
+                        "Pesquisa em grupo",
+                        "Produção de maquetes ou modelos",
+                        "Seminários temáticos",
+                        "Experimentação prática"
+                    ],
+                    medio: [
+                        "Elaboração de artigos científicos",
+                        "Análise crítica de textos",
+                        "Projetos interdisciplinares",
+                        "Simulações e role-playing",
+                        "Produção de podcasts ou vídeos educativos"
+                    ]
+                },
+                resources: [
+                    "Material dourado para matemática",
+                    "Mapas mentais e conceituais",
+                    "Vídeos educativos do YouTube",
+                    "Aplicativos educacionais",
+                    "Jogos de tabuleiro educativos",
+                    "Laboratório de ciências",
+                    "Biblioteca de sala de aula",
+                    "Recursos audiovisuais"
+                ],
+                assessments: [
+                    "Autoavaliação dos estudantes",
+                    "Portfólios de aprendizagem",
+                    "Rubricas de avaliação",
+                    "Listas de observação",
+                    "Provas dialogadas",
+                    "Relatórios de atividades",
+                    "Apresentações orais",
+                    "Diários de bordo"
+                ]
+            };
+
             const render = () => {
                 appContainer.innerHTML = '';
-                if (currentPage === 'form') {
-                    renderForm();
-                } else if (currentPage === 'email') {
+                if (currentPage === 'email') {
                     renderEmailForm();
+                } else if (currentPage === 'form') {
+                    renderForm();
                 } else {
                     renderResult();
                 }
@@ -103,12 +159,6 @@
 
             const handleSubmit = async (e) => {
                 e.preventDefault();
-                
-                if (!userEmail) {
-                    currentPage = 'email';
-                    render();
-                    return;
-                }
                 
                 isLoading = true;
                 error = null;
@@ -122,7 +172,7 @@
                 const emailInput = document.getElementById('user-email');
                 userEmail = emailInput.value.trim();
                 
-                // Validação simples de email
+                // Validação de email
                 if (!userEmail.includes('@') || !userEmail.includes('.')) {
                     error = 'Por favor, insira um email válido';
                     render();
@@ -135,13 +185,9 @@
 
             const generateLessonPlan = async () => {
                 try {
-                    // Gerar plano de aula localmente
-                    generatedPlan = generateLocalPlan(formData);
+                    // Gerar plano de aula com conhecimentos pedagógicos
+                    generatedPlan = generateConsciousPlan(formData);
                     currentPage = 'result';
-                    
-                    // Em um sistema real, aqui enviaríamos o email para um servidor
-                    // que teria a chave API e processaria a solicitação
-                    console.log('Plano gerado para:', userEmail);
                     
                 } catch (err) {
                     error = 'Erro ao gerar plano: ' + err.message;
@@ -150,72 +196,137 @@
                 render();
             };
 
-            const generateLocalPlan = (data) => {
+            const getGradeLevelGroup = (gradeLevel) => {
+                if (gradeLevel.includes('1') || gradeLevel.includes('2') || gradeLevel.includes('3') || gradeLevel.includes('4') || gradeLevel.includes('5')) {
+                    return 'fundamental1';
+                } else if (gradeLevel.includes('6') || gradeLevel.includes('7') || gradeLevel.includes('8') || gradeLevel.includes('9')) {
+                    return 'fundamental2';
+                } else {
+                    return 'medio';
+                }
+            };
+
+            const generateConsciousPlan = (data) => {
                 const { subject, topic, gradeLevel, duration, objective, activities, materials, assessment } = data;
+                const gradeGroup = getGradeLevelGroup(gradeLevel);
                 
-                // Gerar um plano mais variado baseado nos inputs
-                const objectives = [
-                    `Compreender o conceito de ${topic.toLowerCase()}`,
-                    `Identificar ${topic.toLowerCase()} em diferentes contextos`,
-                    `Aplicar os conhecimentos sobre ${topic.toLowerCase()} em situações práticas`,
-                    `Desenvolver habilidades de análise e interpretação`,
-                    `${objective || 'Promover aprendizagem significativa'}`,
-                    `Relacionar ${topic.toLowerCase()} com o cotidiano dos estudantes`,
-                    `Estimular o pensamento crítico sobre ${topic.toLowerCase()}`,
-                    `Desenvolver competências socioemocionais através do estudo de ${topic.toLowerCase()}`
+                // Selecionar metodologia apropriada
+                const randomMethodology = pedagogicalKnowledge.methodologies[
+                    Math.floor(Math.random() * pedagogicalKnowledge.methodologies.length)
                 ];
                 
-                // Embaralhar objetivos para variar o resultado
-                const shuffledObjectives = objectives.sort(() => 0.5 - Math.random());
-                // Selecionar apenas 4 objetivos
-                const selectedObjectives = shuffledObjectives.slice(0, 4);
+                // Selecionar atividades apropriadas para o nível
+                const gradeActivities = pedagogicalKnowledge.activities[gradeGroup];
+                const selectedActivities = [];
+                for (let i = 0; i < 3; i++) {
+                    const randomIndex = Math.floor(Math.random() * gradeActivities.length);
+                    if (!selectedActivities.includes(gradeActivities[randomIndex])) {
+                        selectedActivities.push(gradeActivities[randomIndex]);
+                    }
+                }
                 
-                return `**PLANO DE AULA COMPLETO**
+                // Adicionar atividade personalizada se fornecida
+                if (activities && activities.trim() !== '') {
+                    selectedActivities.push(activities);
+                }
+                
+                // Selecionar recursos
+                const selectedResources = [];
+                for (let i = 0; i < 4; i++) {
+                    const randomIndex = Math.floor(Math.random() * pedagogicalKnowledge.resources.length);
+                    if (!selectedResources.includes(pedagogicalKnowledge.resources[randomIndex])) {
+                        selectedResources.push(pedagogicalKnowledge.resources[randomIndex]);
+                    }
+                }
+                
+                // Adicionar material personalizado se fornecido
+                if (materials && materials.trim() !== '') {
+                    selectedResources.push(materials);
+                }
+                
+                // Selecionar métodos de avaliação
+                const selectedAssessments = [];
+                for (let i = 0; i < 3; i++) {
+                    const randomIndex = Math.floor(Math.random() * pedagogicalKnowledge.assessments.length);
+                    if (!selectedAssessments.includes(pedagogicalKnowledge.assessments[randomIndex])) {
+                        selectedAssessments.push(pedagogicalKnowledge.assessments[randomIndex]);
+                    }
+                }
+                
+                // Adicionar avaliação personalizada se fornecida
+                if (assessment && assessment.trim() !== '') {
+                    selectedAssessments.push(assessment);
+                }
+                
+                // Calcular distribuição de tempo com base na duração
+                const totalMinutes = parseInt(duration);
+                const introductionTime = Math.floor(totalMinutes * 0.15);
+                const developmentTime = Math.floor(totalMinutes * 0.60);
+                const conclusionTime = Math.floor(totalMinutes * 0.15);
+                const assessmentTime = Math.floor(totalMinutes * 0.10);
+                
+                return `**PLANO DE AULA CONSCIENTE**
 
 **DISCIPLINA:** ${subject.toUpperCase()}
 **TEMA:** ${topic}
 **SÉRIE/ANO:** ${gradeLevel}
-**DURAÇÃO:** ${duration} minutos (${Math.floor(duration/60)}h${duration%60}min)
+**DURAÇÃO:** ${duration} minutos
+**METODOLOGIA PRINCIPAL:** ${randomMethodology}
 
-**OBJETIVOS ESPECÍFICOS**
-${selectedObjectives.map(obj => `• ${obj}`).join('\n')}
+**OBJETIVOS DE APRENDIZAGEM**
+• Compreender os conceitos fundamentais de ${topic.toLowerCase()} e sua aplicação prática
+• Desenvolver habilidades de análise crítica sobre ${topic.toLowerCase()}
+• ${objective || `Relacionar ${topic.toLowerCase()} com situações do cotidiano e contextos interdisciplinares`}
+• Estimular o trabalho colaborativo e a expressão de ideias
+• Promover a autonomia na construção do conhecimento
 
-**RECURSOS DIDÁTICOS**
-• ${materials || 'Materiais básicos de ensino'}
-• Quadro branco ou negro
-• Projetor multimídia (se disponível)
-• Materiais impressos e apostilas
-• Recursos audiovisuais complementares
-• ${['Tablets ou computadores', 'Jogos educativos', 'Material de laboratório', 'Mapas e gráficos'][Math.floor(Math.random() * 4)]}
+**DESENVOLVIMENTO DA AULA**
 
-**ATIVIDADES PROPOSTAS**
-• ${activities || 'Exercícios de aplicação prática'}
-• ${['Trabalho em grupo', 'Estudo de caso', 'Solução de problemas', 'Debate orientado'][Math.floor(Math.random() * 4)]}
-• ${['Produção textual', 'Apresentação oral', 'Experimento prático', 'Pesquisa orientada'][Math.floor(Math.random() * 4)]}
-• Discussão e reflexão sobre os resultados
+**Introdução (${introductionTime} minutos)**
+• Apresentação do tema através de uma situação-problema ou questão mobilizadora
+• Levantamento dos conhecimentos prévios dos estudantes sobre ${topic.toLowerCase()}
+• Contextualização histórica e social de ${topic.toLowerCase()}
+• Explicitação dos objetivos de aprendizagem e da metodologia a ser utilizada
 
-**INSTRUMENTOS DE AVALIAÇÃO**
-• ${assessment || 'Avaliação contínua do processo'}
-• Participação nas atividades propostas
-• Resolução dos exercícios práticos
-• Observação do engajamento durante as explicações
-• ${['Autoavaliação dos estudantes', 'Relatório de atividades', 'Questionário avaliativo', 'Apresentação de trabalhos'][Math.floor(Math.random() * 4)]}
+**Desenvolvimento (${developmentTime} minutos)**
+• Atividade 1: ${selectedActivities[0]}
+• Atividade 2: ${selectedActivities[1]}
+• Atividade 3: ${selectedActivities[2]}
+• Mediação do professor para garantir a compreensão dos conceitos
+• Momentos de discussão em grupo para socialização das descobertas
 
-**REFERÊNCIAS BIBLIOGRÁFICAS**
-• Livros didáticos da disciplina
-• Materiais complementares específicos
-• Recursos educacionais digitais
-• Documentos oficiais da base curricular
-• ${['Artigos científicos recentes', 'Vídeos educativos', 'Sites especializados', 'Obras literárias relacionadas'][Math.floor(Math.random() * 4)]}
+**Recursos Didáticos**
+${selectedResources.map(resource => `• ${resource}`).join('\n')}
 
-**OBSERVAÇÕES**
-• Ajustar o tempo conforme o ritmo da turma
-• Considerar as particularidades dos estudantes
-• Manter ambiente propício para aprendizagem
-• Promover inclusão e participação de todos
-• ${['Utilizar metodologias ativas', 'Adaptar para educação inclusiva', 'Incluir exemplos locais', 'Relacionar com atualidades'][Math.floor(Math.random() * 4)]}
+**Conclusão (${conclusionTime} minutos)**
+• Sistematização dos conhecimentos construídos durante a aula
+• Reflexão coletiva sobre o processo de aprendizagem
+• Relação entre o tema estudado e outros componentes curriculares
+• Preparação para os próximos passos da sequência didática
 
-*Plano pedagógico gerado para ${userEmail} - ${new Date().toLocaleDateString('pt-BR')}*`;
+**AVALIAÇÃO (${assessmentTime} minutos)**
+• Critérios de avaliação:
+  - Participação e engajamento nas atividades propostas
+  - Qualidade das contribuições nos momentos de discussão
+  - Demonstração de compreensão dos conceitos trabalhados
+• Instrumentos de avaliação:
+${selectedAssessments.map(assessment => `  - ${assessment}`).join('\n')}
+
+**REFERÊNCIAS BIBLIOGRÁFICAS SUGERIDAS**
+• Livros didáticos atualizados de ${subject.toLowerCase()}
+• Artigos científicos recentes sobre ${topic.toLowerCase()}
+• Documentos curriculares oficiais (BNCC)
+• Sites educacionais especializados
+• Obras literárias relacionadas à temática
+
+**OBSERVAÇÕES E ADAPTAÇÕES**
+• Considerar o ritmo de aprendizagem de cada estudante
+• Proporcionar diferentes formas de representação e expressão
+• Oferecer materiais complementares para estudantes com dificuldades
+• Propor extensões e aprofundamentos para estudantes com maior facilidade
+• Manter registro das estratégias que funcionaram bem para futuro planejamento
+
+*Plano pedagógico consciente gerado para ${userEmail} - ${new Date().toLocaleDateString('pt-BR')}*`;
             };
 
             const handleCopy = () => {
@@ -230,7 +341,7 @@ ${selectedObjectives.map(obj => `• ${obj}`).join('\n')}
             };
 
             const handleShareWhatsApp = () => {
-                const encodedText = encodeURIComponent(generatedPlan);
+                const encodedText = encodeURIComponent(`Confira meu plano de aula:\n\n${generatedPlan}`);
                 window.open(`https://wa.me/?text=${encodedText}`, '_blank');
             };
 
@@ -247,10 +358,22 @@ ${selectedObjectives.map(obj => `• ${obj}`).join('\n')}
                     const pdf = new jsPDF('p', 'mm', 'a4');
                     
                     const imgWidth = 210;
+                    const pageHeight = 297;
                     const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                    let heightLeft = imgHeight;
+                    let position = 0;
                     
-                    pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-                    pdf.save('plano-de-aula.pdf');
+                    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+                    
+                    while (heightLeft >= 0) {
+                        position = heightLeft - imgHeight;
+                        pdf.addPage();
+                        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                        heightLeft -= pageHeight;
+                    }
+                    
+                    pdf.save('plano-de-aula-consciente.pdf');
                     
                 } catch (err) {
                     alert('Erro ao gerar PDF: ' + err.message);
@@ -291,9 +414,11 @@ ${selectedObjectives.map(obj => `• ${obj}`).join('\n')}
 
             const renderEmailForm = () => {
                 const emailHTML = `
-                    <form id="email-form" class="relative p-6 md:p-10 bg-white dark:bg-gray-800 rounded-3xl shadow-xl w-full max-w-2xl mx-auto space-y-6">
-                        <h2 class="text-3xl font-bold text-gray-800 dark:text-white text-center mb-6">Identificação</h2>
-                        <div class="space-y-4">
+                    <div class="relative p-6 md:p-10 bg-white dark:bg-gray-800 rounded-3xl shadow-xl w-full max-w-2xl mx-auto space-y-6">
+                        <h2 class="text-3xl font-bold text-gray-800 dark:text-white text-center mb-2">Plano de Aula Consciente</h2>
+                        <p class="text-gray-600 dark:text-gray-400 text-center mb-6">Sistema inteligente de planejamento pedagógico</p>
+                        
+                        <form id="email-form" class="space-y-4">
                             <div>
                                 <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">
                                     Seu email
@@ -301,7 +426,7 @@ ${selectedObjectives.map(obj => `• ${obj}`).join('\n')}
                                 <input 
                                     type="email" 
                                     id="user-email" 
-                                    class="w-full p-3 border-2 border-gray-300 rounded-lg" 
+                                    class="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition" 
                                     placeholder="seu.email@exemplo.com" 
                                     required 
                                 />
@@ -309,12 +434,22 @@ ${selectedObjectives.map(obj => `• ${obj}`).join('\n')}
                                     Seu email será usado para personalizar seu plano de aula.
                                 </p>
                             </div>
-                        </div>
+                        </form>
+                        
                         ${error ? `<div class="text-red-500 bg-red-100 p-3 rounded-lg mt-4">${error}</div>` : ''}
-                        <button type="submit" class="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition duration-200 mt-6">
-                            Continuar
+                        
+                        <button onclick="document.getElementById('email-form').requestSubmit()" class="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition duration-200 mt-6">
+                            Continuar para o Planejamento
                         </button>
-                    </form>
+                        
+                        <div class="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                            <h3 class="font-bold text-blue-800 dark:text-blue-300 mb-2">Como funciona?</h3>
+                            <p class="text-blue-700 dark:text-blue-300 text-sm">
+                                Nosso sistema utiliza conhecimentos pedagógicos consolidados para criar planos de aula 
+                                conscientes e personalizados, indo além das informações básicas fornecidas.
+                            </p>
+                        </div>
+                    </div>
                 `;
                 appContainer.innerHTML = emailHTML;
 
@@ -325,37 +460,43 @@ ${selectedObjectives.map(obj => `• ${obj}`).join('\n')}
             const renderForm = () => {
                 const formHTML = `
                     <form id="lesson-form" class="relative p-6 md:p-10 bg-white dark:bg-gray-800 rounded-3xl shadow-xl w-full max-w-2xl mx-auto space-y-6">
-                        <h2 class="text-3xl font-bold text-gray-800 dark:text-white text-center mb-6">Plano de Aula Inteligente</h2>
-                        <p class="text-gray-600 dark:text-gray-400 text-center">Gerando plano para: ${userEmail}</p>
-                        <div class="space-y-4">
+                        <h2 class="text-3xl font-bold text-gray-800 dark:text-white text-center mb-2">Plano de Aula Consciente</h2>
+                        <p class="text-gray-600 dark:text-gray-400 text-center mb-6">Preencha os campos abaixo para gerar um plano pedagógico inteligente</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             ${Object.entries({
                                 subject: 'Disciplina',
                                 topic: 'Conteúdo/Tema',
                                 gradeLevel: 'Série/Ano',
-                                duration: 'Duração (minutos)',
-                                objective: 'Objetivo(s)',
-                                activities: 'Atividades',
-                                materials: 'Materiais',
-                                assessment: 'Avaliação'
+                                duration: 'Duração (minutos)'
                             }).map(([key, label]) => `
                                 <div>
                                     <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">${label}</label>
-                                    ${key === 'duration' ? `
-                                        <input type="number" name="${key}" value="${formData[key]}" 
-                                            class="w-full p-3 border-2 border-gray-300 rounded-lg" required />
-                                    ` : key === 'objective' || key === 'activities' || key === 'materials' || key === 'assessment' ? `
-                                        <textarea name="${key}" 
-                                            class="w-full p-3 border-2 border-gray-300 rounded-lg min-h-[100px]">${formData[key]}</textarea>
-                                    ` : `
-                                        <input type="text" name="${key}" value="${formData[key]}" 
-                                            class="w-full p-3 border-2 border-gray-300 rounded-lg" required />
-                                    `}
+                                    <input type="text" name="${key}" value="${formData[key]}" 
+                                        class="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition" required />
                                 </div>
                             `).join('')}
                         </div>
+                        
+                        <div class="space-y-4">
+                            ${Object.entries({
+                                objective: 'Objetivo(s) de Aprendizagem',
+                                activities: 'Atividades Sugeridas (opcional)',
+                                materials: 'Materiais Específicos (opcional)',
+                                assessment: 'Avaliação Desejada (opcional)'
+                            }).map(([key, label]) => `
+                                <div>
+                                    <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">${label}</label>
+                                    <textarea name="${key}" 
+                                        class="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition min-h-[100px]">${formData[key]}</textarea>
+                                </div>
+                            `).join('')}
+                        </div>
+                        
                         ${error ? `<div class="text-red-500 bg-red-100 p-3 rounded-lg mt-4">${error}</div>` : ''}
-                        <button type="submit" class="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition duration-200 mt-6 flex items-center justify-center">
-                            ${isLoading ? '<div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-6 w-6 mr-2"></div> Gerando...' : 'Gerar Plano de Aula'}
+                        
+                        <button type="submit" class="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition duration-200 mt-6 flex items-center justify-center">
+                            ${isLoading ? '<div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-6 w-6 mr-2"></div> Gerando Plano Consciente...' : 'Gerar Plano de Aula Consciente'}
                         </button>
                     </form>
                 `;
@@ -377,11 +518,12 @@ ${selectedObjectives.map(obj => `• ${obj}`).join('\n')}
 
                 const resultHTML = `
                     <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-4xl mx-auto p-6">
-                        <h2 class="text-2xl font-bold text-gray-800 dark:text-white text-center mb-6">Plano de Aula Gerado</h2>
-                        <p class="text-gray-600 dark:text-gray-400 text-center mb-4">Para: ${userEmail}</p>
+                        <h2 class="text-2xl font-bold text-gray-800 dark:text-white text-center mb-4">Plano de Aula Consciente</h2>
+                        <p class="text-gray-600 dark:text-gray-400 text-center mb-6">Gerado para: ${userEmail}</p>
+                        
                         <div id="plan-content" class="space-y-4">
                             ${parsedPlan.map((section, index) => `
-                                <div class="p-6 rounded-xl ${colors[index % colors.length]} ${darkColors[index % darkColors.length]}">
+                                <div class="p-6 rounded-xl ${colors[index % colors.length]} ${darkColors[index % darkColors.length]} border border-gray-200 dark:border-gray-700">
                                     <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-3">${section.title}</h3>
                                     <div class="text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed">
                                         ${section.content}
@@ -389,21 +531,27 @@ ${selectedObjectives.map(obj => `• ${obj}`).join('\n')}
                                 </div>
                             `).join('')}
                         </div>
+                        
                         <div class="flex flex-wrap gap-3 justify-center mt-8">
-                            <button id="copy-btn" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
+                            <button id="copy-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition flex items-center">
                                 📋 Copiar
                             </button>
-                            <button id="whatsapp-btn" class="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition">
+                            <button id="whatsapp-btn" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition flex items-center">
                                 📱 WhatsApp
                             </button>
-                            <button id="pdf-btn" class="bg-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition">
-                                📄 Salvar PDF
+                            <button id="pdf-btn" class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold transition flex items-center">
+                                📄 PDF
                             </button>
-                            <button id="back-btn" class="bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-700 transition">
+                            <button id="back-btn" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-semibold transition flex items-center">
                                 ↩ Voltar
                             </button>
                         </div>
-                        ${copiedMessage ? '<div class="text-green-600 text-center mt-4 font-semibold">✓ Copiado para a área de transferência!</div>' : ''}
+                        
+                        ${copiedMessage ? '<div class="text-green-600 text-center mt-4 font-semibold animate-pulse">✓ Copiado para a área de transferência!</div>' : ''}
+                        
+                        <div class="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                            <p>Plano gerado em ${new Date().toLocaleString('pt-BR')} | Sistema de Planejamento Consciente</p>
+                        </div>
                     </div>
                 `;
                 appContainer.innerHTML = resultHTML;
